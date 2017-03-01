@@ -3,27 +3,37 @@
 ########################
 args = commandArgs(trailingOnly=TRUE)
 
+#print(args)
+
+i_f <- ""
+o_f <- ""
+
 if (length(args) < 4 ) {
   stop("USAGE: Rscript hw1_104761507.R -files test.1.csv -out result.csv", call.=FALSE)
 } else {
   
-  if(args[1]=="-files")
+  if(args[1]=="-files"){
     i_f <- args[2]
-  if(args[3]=="-out")
+  }
+  if(args[3]=="-out"){
     o_f <- args[4]
+  }
   
-  if(args[1]=="-out")
+  if(args[1]=="-out"){
     o_f <- args[2]
-  if(args[3]=="-files")
+  }
+  if(args[3]=="-files"){
     i_f <- args[4]
+  }
+  
 }
 
 if(!file.exists(i_f)){
   stop("Input file does not exist!!", call.=FALSE)
 }
 
-if(length(o_f)==0){
-  stop("No Output file found!!", call.=FALSE)
+if(o_f == ""){
+  stop("No output filename is found!!", call.=FALSE)
 }
 
 inputData <- read.csv(file=i_f, header=TRUE, sep=",")
@@ -37,5 +47,3 @@ if(!file.exists(o_f)){
 }
 
 write.csv(row, file=o_f, quote = FALSE, row.names = FALSE)
-
-#Rscript hw1_104761507.R -files test.1.csv -out result.csv 
