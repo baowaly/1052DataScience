@@ -1,8 +1,16 @@
 ########################
 # homework1 example
 ########################
-args = commandArgs(trailingOnly=TRUE)
 
+#install packages
+list.of.packages <- c("tools")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages, repos="http://cran.rstudio.com/")
+
+#attaching packages
+library(tools)
+
+args = commandArgs(trailingOnly=TRUE)
 #print(args)
 
 i_f <- ""
@@ -40,7 +48,7 @@ inputData <- read.csv(file=i_f, header=TRUE, sep=",")
 max_weight <- round(max(inputData$weight),2)
 max_height <- round(max(inputData$height),2)
 
-file_without_ext <- tools::file_path_sans_ext(basename(i_f))
+file_without_ext <- file_path_sans_ext(basename(i_f))
 row <- cbind(set=file_without_ext, weight=max_weight, height=max_height)
 if(!file.exists(o_f)){
   file.create(o_f)
