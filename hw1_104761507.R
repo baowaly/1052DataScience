@@ -1,5 +1,6 @@
 ########################
-# homework1 example
+# homework1
+# author: 104761507
 ########################
 
 #install packages
