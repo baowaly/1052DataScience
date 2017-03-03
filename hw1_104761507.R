@@ -17,10 +17,10 @@ args = commandArgs(trailingOnly=TRUE)
 i_f <- ""
 o_f <- ""
 
-if (length(args) < 4 ) {
+test <- c("-files", "-out") %in% args
+if (FALSE %in% test | length(args) < 4 ) {
   stop("USAGE: Rscript hw1_104761507.R -files test.1.csv -out result.csv", call.=FALSE)
 } else {
-  
   if(args[1]=="-files"){
     i_f <- args[2]
   }
