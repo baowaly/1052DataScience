@@ -11,6 +11,7 @@ if(length(new.packages)) install.packages(new.packages, repos="http://cran.rstud
 #attaching packages
 library(tools)
 
+#processing commandline arguments
 args = commandArgs(trailingOnly=TRUE)
 #print(args)
 
@@ -37,6 +38,7 @@ if (FALSE %in% test | length(args) < 4 ) {
   
 }
 
+#check input and output files
 if(!file.exists(i_f)){
   stop("Input file does not exist!!", call.=FALSE)
 }
@@ -45,14 +47,18 @@ if(o_f == ""){
   stop("No output filename is found!!", call.=FALSE)
 }
 
+#read input file
 inputData <- read.csv(file=i_f, header=TRUE, sep=",")
 max_weight <- round(max(inputData$weight),2)
 max_height <- round(max(inputData$height),2)
 
+#process data
 file_without_ext <- file_path_sans_ext(basename(i_f))
-row <- cbind(set=file_without_ext, weight=max_weight, height=max_height)
+result <- cbind(set=file_without_ext, weight=max_weight, height=max_height)
+
+#save result
+print(result)
 if(!file.exists(o_f)){
   file.create(o_f)
 }
-
-write.csv(row, file=o_f, quote = FALSE, row.names = FALSE)
+write.csv(result, file=o_f, quote = FALSE, row.names = FALSE)
