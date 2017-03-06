@@ -57,7 +57,7 @@ file_without_ext <- file_path_sans_ext(basename(i_f))
 result <- cbind(set=file_without_ext, weight=max_weight, height=max_height)
 
 #save result
-print(result)
+#print(result)
 if(!file.exists(o_f)){
   file.create(o_f)
 }
