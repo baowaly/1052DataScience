@@ -1,12 +1,26 @@
-query_func<-function(query_m, i)
+########################
+# homework1
+# author: 104761507
+########################
+
+#install packages
+list.of.packages <- c("ROCR", "caret")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages, repos="http://cran.rstudio.com/")
+
+library(caret)
+library(ROCR)
+
+
+query_func<-function(target, i)
 {
-  if(query_m == "male"){
+  if(target == "male"){
     which.min(i)
   }
-  else if (query_m == "female") {
+  else if (target == "female") {
     which.max(i)
   } else {
-    stop(paste("ERROR: unknown query function", query_m))
+    stop(paste("ERROR: unknown target function", target))
   }
 }
 
@@ -20,8 +34,8 @@ if (length(args)==0) {
 i<-1 
 while(i < length(args))
 {
-  if(args[i] == "--query"){
-    query_m<-args[i+1]
+  if(args[i] == "--target"){
+    target<-args[i+1]
     i<-i+1
   }else if(args[i] == "--files"){
     j<-grep("-", c(args[(i+1):length(args)], "-"))[1]
@@ -37,7 +51,7 @@ while(i < length(args))
 }
 
 print("PROCESS")
-print(paste("query mode :", query_m))
+print(paste("target :", target))
 print(paste("output file:", out_f))
 print(paste("files      :", files))
 
@@ -49,13 +63,13 @@ for(file in files)
 {
   name<-gsub(".csv", "", basename(file))
   d<-read.table(file, header=T,sep=",")
-  weis<-c(weis, d$weight[query_func(query_m, d$weight)])
-  heis<-c(heis, d$height[query_func(query_m, d$height)])
+  weis<-c(weis, d$weight[query_func(target, d$weight)])
+  heis<-c(heis, d$height[query_func(target, d$height)])
   names<-c(names,name)
 }
 out_data<-data.frame(set=names, wei=weis, hei=heis, stringsAsFactors = F)
-index<-sapply(out_data[,c("wei","hei")], query_func, query_m=query_m)
+index<-sapply(out_data[,c("wei","hei")], query_func, target=target)
 
 # output file
-out_data<-rbind(out_data,c(query_m,names[index]))
+out_data<-rbind(out_data,c(target,names[index]))
 write.table(out_data, file=out_f, row.names = F, quote = F)
