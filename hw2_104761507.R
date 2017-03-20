@@ -4,12 +4,13 @@
 ########################
 
 #install packages
-list.of.packages <- c("ROCR", "caret")
+list.of.packages <- c("caret", "ROCR", "tools")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages, repos="http://cran.rstudio.com/")
 
 library(caret)
 library(ROCR)
+library(tools)
 
 
 query_func<-function(target, i)
@@ -27,7 +28,7 @@ query_func<-function(target, i)
 # read parameters
 args = commandArgs(trailingOnly=TRUE)
 if (length(args)==0) {
-  stop("USAGE: Rscript hw1.R -query min|max -files file1 file2 ... filen –out out.csv", call.=FALSE)
+  stop("USAGE: Rscript hw2_104761507.R --target male --files methods/method1.csv methods/method2.csv --out result.csv", call.=FALSE)
 }
 
 # parse parameters
@@ -50,26 +51,66 @@ while(i < length(args))
   i<-i+1
 }
 
+#target <- "male"
+#out_f <- "result.csv"
+#files <-  c("methods/method1.csv", "methods/method2.csv", "methods/method3.csv") 
+
 print("PROCESS")
 print(paste("target :", target))
 print(paste("output file:", out_f))
 print(paste("files      :", files))
 
-# read files
-names<-c()
-weis<-c()
-heis<-c()
-for(file in files)
-{
-  name<-gsub(".csv", "", basename(file))
-  d<-read.table(file, header=T,sep=",")
-  weis<-c(weis, d$weight[query_func(target, d$weight)])
-  heis<-c(heis, d$height[query_func(target, d$height)])
-  names<-c(names,name)
-}
-out_data<-data.frame(set=names, wei=weis, hei=heis, stringsAsFactors = F)
-index<-sapply(out_data[,c("wei","hei")], query_func, target=target)
+#target <- 'female'
 
-# output file
-out_data<-rbind(out_data,c(target,names[index]))
-write.table(out_data, file=out_f, row.names = F, quote = F)
+results <- NULL
+method <- c()
+sensitivity <- c()
+specificity <- c()
+f1_score <- c()
+auc_score <- c()
+
+for(input_file in files)
+{
+  #read input file
+  #input_file <- "methods/method1.csv"
+  inputData <- read.csv(file=input_file, header=TRUE, sep=",")
+  method <- c(method, file_path_sans_ext(basename(input_file)))
+  
+  predicted <- as.factor(inputData$prediction)
+  expected <- as.factor(inputData$reference)
+  conf_matrx <- confusionMatrix(data=predicted, reference=expected, positive=target, mode = "prec_recall")
+  #print(conf_matrx)
+  
+  sensitivity <- c(sensitivity, round(conf_matrx$byClass[["Sensitivity"]],2))
+  specificity <- c(specificity, round(conf_matrx$byClass[["Specificity"]],2))
+  f1_score <- c(f1_score, round(conf_matrx$byClass[["F1"]],2))
+  
+  #AUC
+  pred_vector <- as.numeric(ifelse(predicted == target, 1, 0)) #make numeric
+  ref_vector <- as.numeric(ifelse(expected == target, 1, 0)) #make numeric
+  auc_pred <- prediction(predictions = pred_vector, labels = ref_vector)
+  auc_perf <- performance(auc_pred,"auc");
+  auc_score <- c(auc_score, round(as.numeric(auc_perf@y.values),2))
+
+}
+
+#make dataframe
+results <- data.frame(method=method, sensitivity = sensitivity, specificity = specificity, F1=f1_score, AUC = auc_score, stringsAsFactors = F)
+
+#find max data
+max_sensitivity <- results[which.max(results$sensitivity),]$method
+max_specificity <- results[which.max(results$specificity),]$method
+max_F1 <- results[which.max(results$F1),]$method
+max_AUC <- results[which.max(results$AUC),]$method
+
+#add max row
+row <- cbind(method="highest", sensitivity = max_sensitivity, specificity = max_specificity, F1=max_F1, AUC = max_AUC)
+results <- rbind(results, row)
+
+print(paste("Results:", results))
+
+#save result
+if(!file.exists(out_f)){
+  file.create(out_f)
+}
+write.csv(results, file=out_f, quote = FALSE, row.names = FALSE)
