@@ -1,29 +1,15 @@
 ########################
-# homework1
+# homework2
 # author: 104761507
 ########################
 
 #install packages
-list.of.packages <- c("caret", "ROCR", "tools")
+list.of.packages <- c("ROCR", "tools")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages, repos="http://cran.rstudio.com/")
 
-library(caret)
 library(ROCR)
 library(tools)
-
-
-query_func<-function(target, i)
-{
-  if(target == "male"){
-    which.min(i)
-  }
-  else if (target == "female") {
-    which.max(i)
-  } else {
-    stop(paste("ERROR: unknown target function", target))
-  }
-}
 
 # read parameters
 args = commandArgs(trailingOnly=TRUE)
@@ -51,16 +37,10 @@ while(i < length(args))
   i<-i+1
 }
 
-#target <- "male"
-#out_f <- "result.csv"
-#files <-  c("methods/method1.csv", "methods/method2.csv", "methods/method3.csv") 
-
-print("PROCESS")
-print(paste("target :", target))
-print(paste("output file:", out_f))
-print(paste("files      :", files))
-
-#target <- 'female'
+#print("PROCESS")
+#print(paste("target :", target))
+#print(paste("output file:", out_f))
+#print(paste("files      :", files))
 
 results <- NULL
 method <- c()
@@ -78,17 +58,42 @@ for(input_file in files)
   
   predicted <- as.factor(inputData$prediction)
   expected <- as.factor(inputData$reference)
-  conf_matrx <- confusionMatrix(data=predicted, reference=expected, positive=target, mode = "prec_recall")
+  
+  #(conf_matrx <- confusionMatrix(data=predicted, reference=expected, positive=target, mode = "everything"))
+  
+  #confusion matrix
+  resultframe <- data.frame(Reference=expected, Prediction=predicted)
+  CM <- table(resultframe)
+  
   #print(conf_matrx)
   
-  sensitivity <- c(sensitivity, round(conf_matrx$byClass[["Sensitivity"]],2))
-  specificity <- c(specificity, round(conf_matrx$byClass[["Specificity"]],2))
-  f1_score <- c(f1_score, round(conf_matrx$byClass[["F1"]],2))
+  if(target == "male"){
+    TP <- CM[2,2]
+    TN <- CM[1,1]
+    FP <- CM[1,2]
+    FN <- CM[2,1]
+  }else{
+    TP <- CM[1,1]
+    TN <- CM[2,2]
+    FP <- CM[2,1]
+    FN <- CM[1,2]    
+  }
+  
+  pre <- TP/(TP+FP)
+  rec <- TP/(TP+FN)
+  sen <- rec
+  spe <- TN/(TN+FP)
+  f1 <- (2*pre*rec)/(pre+rec)
+  
+  sensitivity <- c(sensitivity, round(sen,2))
+  specificity <- c(specificity, round(spe,2))
+  f1_score <- c(f1_score, round(f1,2))
   
   #AUC
-  pred_vector <- as.numeric(ifelse(predicted == target, 1, 0)) #make numeric
-  ref_vector <- as.numeric(ifelse(expected == target, 1, 0)) #make numeric
-  auc_pred <- prediction(predictions = pred_vector, labels = ref_vector)
+  pred_vector <- as.numeric(inputData$pred.score) #make numeric
+  if(target == "female")
+    pred_vector <- 1 - pred_vector
+  auc_pred <- prediction(predictions = pred_vector, labels = expected)
   auc_perf <- performance(auc_pred,"auc");
   auc_score <- c(auc_score, round(as.numeric(auc_perf@y.values),2))
 
@@ -107,10 +112,12 @@ max_AUC <- results[which.max(results$AUC),]$method
 row <- cbind(method="highest", sensitivity = max_sensitivity, specificity = max_specificity, F1=max_F1, AUC = max_AUC)
 results <- rbind(results, row)
 
-print(paste("Results:", results))
+#print(paste("Results:", results))
 
 #save result
 if(!file.exists(out_f)){
   file.create(out_f)
 }
 write.csv(results, file=out_f, quote = FALSE, row.names = FALSE)
+
+print("--DONE--")
