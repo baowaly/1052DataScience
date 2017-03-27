@@ -127,6 +127,6 @@ results <- rbind(results, row)
 if(!file.exists(out_f)){
   file.create(out_f)
 }
-write.csv(results, file=out_f, quote = FALSE, row.names = FALSE)
+write.csv(results, file=out_f, quote = FALSE, ropw.names = FALSE)
 
 print("--DONE--")
