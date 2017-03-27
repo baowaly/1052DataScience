@@ -37,10 +37,17 @@ while(i < length(args))
   i<-i+1
 }
 
+#check target
+if(!(target %in% c("male", "female")))
+  stop(paste("Unknown target", target), call.=FALSE)
+
+if(!exists("out_f"))
+  stop(paste("Output file not found"), call.=FALSE)
+
 #print("PROCESS")
-#print(paste("target :", target))
-#print(paste("output file:", out_f))
-#print(paste("files      :", files))
+print(paste("target :", target))
+print(paste("output file:", out_f))
+print(paste("files      :", files))
 
 results <- NULL
 method <- c()
@@ -72,7 +79,9 @@ for(input_file in files)
     TN <- CM[1,1]
     FP <- CM[1,2]
     FN <- CM[2,1]
-  }else{
+  }
+  
+  if(target == "female"){
     TP <- CM[1,1]
     TN <- CM[2,2]
     FP <- CM[2,1]
