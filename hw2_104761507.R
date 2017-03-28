@@ -102,7 +102,10 @@ for(input_file in files)
   pred_vector <- as.numeric(inputData$pred.score) #make numeric
   if(target == "female")
     pred_vector <- 1 - pred_vector
-  auc_pred <- prediction(predictions = pred_vector, labels = expected)
+  
+  ref_labels <- as.factor(ifelse(inputData$reference== target, 1 , 0))
+  
+  auc_pred <- prediction(predictions = pred_vector, labels = ref_labels)
   auc_perf <- performance(auc_pred,"auc");
   auc_score <- c(auc_score, round(as.numeric(auc_perf@y.values),2))
 
@@ -127,6 +130,6 @@ results <- rbind(results, row)
 if(!file.exists(out_f)){
   file.create(out_f)
 }
-write.csv(results, file=out_f, quote = FALSE, ropw.names = FALSE)
+write.csv(results, file=out_f, quote = FALSE, row.names = FALSE)
 
 print("--DONE--")
