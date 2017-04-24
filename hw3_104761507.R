@@ -60,7 +60,7 @@ auc_score <- c()
 for(input_file in files)
 {
   #read input file
-  input_file <- "methods/method5.csv"
+  #input_file <- "methods/method5.csv"
   inputData <- read.csv(file=input_file, header=TRUE, sep=",")
   method <- c(method, input_file)
   
@@ -147,6 +147,8 @@ print(cont_table)
 # the null hypothesis : conversion is independent of group
 p_value <- fisher.test(cont_table)$p.value
 print(paste("P Value      :", p_value))
+
+#mcnemar.test(cont_table)
 
 #delete dir path
 results$method <- file_path_sans_ext(basename(results$method))
